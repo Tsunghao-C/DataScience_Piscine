@@ -2,16 +2,6 @@ networks:
   database_net:
     driver: bridge
 
-
-volumes:
-  postgres_data: {}
-  # postgres_data:
-    # driver: local
-    # driver_opts:
-    #   type: none
-    #   device: ${HOME}/Document/postgres_data
-    #   o: bind
-
 services:
   postgres:
     container_name: postgres
@@ -23,12 +13,6 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - /tmp/postgres-data:/var/lib/postgresql/data
     networks:
       - database_net
-    # healthcheck:
-    #   test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h localhost -p 5434 || exit 1"]
-    #   interval: 10s
-    #   timeout: 5s
-    #   retries: 5
-    # restart: unless-stopped
