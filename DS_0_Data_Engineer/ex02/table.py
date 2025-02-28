@@ -48,8 +48,8 @@ def create_table_if_not_exists(conn, table_name):
         create_table_query = f"""
         CREATE TABLE IF NOT EXISTS {table_name} (
             event_time TIMESTAMP WITH TIME ZONE,
-            event_type TEXT,
-            product_id BIGINT,
+            event_type VARCHAR(255),
+            product_id INTEGER,
             price NUMERIC(10,2),
             user_id BIGINT,
             user_session UUID
