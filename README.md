@@ -9,7 +9,7 @@ DataScience Piscine from school 42. Mainly about Data engineering, Analysis, and
 
 -- DROP TABLE IF EXISTS public.events;
 
-CREATE TABLE IF NOT EXISTS public.events
+CREATE TABLE IF NOT EXISTS public.data_2022_dec
 (
     event_time timestamp with time zone,
     event_type text COLLATE pg_catalog."default",
@@ -26,8 +26,8 @@ ALTER TABLE IF EXISTS public.events
 
 2. Copy data using psql
 ```
-COPY events(event_time, event_type, product_id, price, user_id, user_session)
-FROM '/tmp/datasource/customer/data_2022_dec.csv'
+COPY data_2022_dec(event_time, event_type, product_id, price, user_id, user_session)
+FROM '/tmp/data_2022_dec.csv'
 DELIMITER ','
 CSV HEADER;
 ```
