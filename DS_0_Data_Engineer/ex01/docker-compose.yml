@@ -1,0 +1,32 @@
+networks:
+  database_net:
+    driver: bridge
+
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=${POSTGRES_USR}
+      - POSTGRES_PASSWORD=${POSTGRES_PWD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - /tmp/postgres-data:/var/lib/postgresql/data
+      # - ../subject:/tmp/datasource
+    networks:
+      - database_net
+  
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PWD}
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - database_net
