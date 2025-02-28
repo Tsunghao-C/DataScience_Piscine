@@ -32,6 +32,7 @@ def get_connection():
 
 
 def table_exists(conn, table_name):
+    # with keyword automatically close object that needs to close
     with conn.cursor() as cursor:
         cursor.execute("""
             SELECT EXISTS (
@@ -114,3 +115,28 @@ if __name__ == "__main__":
 
     except Exception as e:
         print("Error loading data:", e)
+
+
+# Basic Workflow of "psycopg2"
+# 1. Establish a connection to PostgreSQL DB
+#       conn = psycopg2.connect()
+# 2. Create a cursor (a temp workspace for Executing queries)
+#       with conn.cursor() as cursor (or cursor = conn.cursor())
+# 3. Execute queries using the cursor object
+#       cursor.execute("SELECT * FROM my_table;")
+# 4. commit transactions to apply changes
+#       conn.commit()
+# 5. Close the cursor and connection
+#       cursor.close(); conn.close()
+
+### IMPORTANT ###
+# The SQL output is temporarily saved in cursor object of cursor.execut()
+# You must call conn.commit() to apply the changes. If not, there will be no changes
+
+# However, if the conn object is created using "with" like:
+
+# with psycopg2.connect() as conn:
+#       with conn.cursor() as cursor:
+#           cursor.execute("INSERT INTO mytable(...)")
+
+# This case, it will automatically commits when 'with' block ends
