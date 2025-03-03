@@ -84,7 +84,7 @@ SELECT {column_str} FROM {source_table}
     print(f"Data from {source_table} appended to {dest_table} successfully!")
 
 
-if __name__ == "__main__":
+def main():
     try:
         # Build connection to DB
         conn = get_connection()
@@ -106,3 +106,7 @@ if __name__ == "__main__":
         print("Error loading data:", e)
     finally:
         conn.close()
+
+
+if __name__ == "__main__":
+    main()
