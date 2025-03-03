@@ -1,6 +1,4 @@
-import pandas as pd
 import psycopg2 as psy
-import os
 
 
 # Database connection details
@@ -37,7 +35,7 @@ def table_exists(conn, table_name):
 def get_tables(conn) -> list[tuple]:
     """return all tables in pulbic schema"""
     with conn.cursor() as cursor:
-        query = f"""
+        query = """
 SELECT table_name
 FROM information_schema.tables
 WHERE table_schema = 'public'
@@ -99,7 +97,7 @@ if __name__ == "__main__":
         # get all the table_names like "data_202*_***"
         tables = [x[0] for x in get_tables(conn)]
         # print(tables)
-        
+
         # iterate through tables and append data to 'customers'
         for table in tables:
             append_data(conn, table, 'customers')
@@ -108,28 +106,3 @@ if __name__ == "__main__":
         print("Error loading data:", e)
     finally:
         conn.close()
-
-
-# Basic Workflow of "psycopg2"
-# 1. Establish a connection to PostgreSQL DB
-#       conn = psycopg2.connect()
-# 2. Create a cursor (a temp workspace for Executing queries)
-#       with conn.cursor() as cursor (or cursor = conn.cursor())
-# 3. Execute queries using the cursor object
-#       cursor.execute("SELECT * FROM my_table;")
-# 4. commit transactions to apply changes
-#       conn.commit()
-# 5. Close the cursor and connection
-#       cursor.close(); conn.close()
-
-### IMPORTANT ###
-# The SQL output is temporarily saved in cursor object of cursor.execut()
-# You must call conn.commit() to apply the changes. If not, there will be no changes
-
-# However, if the conn object is created using "with" like:
-
-# with psycopg2.connect() as conn:
-#       with conn.cursor() as cursor:
-#           cursor.execute("INSERT INTO mytable(...)")
-
-# This case, it will automatically commits when 'with' block ends
