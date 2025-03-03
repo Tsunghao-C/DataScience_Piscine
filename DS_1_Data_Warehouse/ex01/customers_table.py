@@ -86,7 +86,6 @@ SELECT {column_str} FROM {source_table}
     print(f"Data from {source_table} appended to {dest_table} successfully!")
 
 
-
 if __name__ == "__main__":
     try:
         # Build connection to DB
@@ -101,27 +100,9 @@ if __name__ == "__main__":
         tables = [x[0] for x in get_tables(conn)]
         # print(tables)
         
-        # iterate through tables and append data to 'customer'
+        # iterate through tables and append data to 'customers'
         for table in tables:
             append_data(conn, table, 'customers')
-#             with conn.cursor() as cursor:
-#                 query = f"""
-# INSERT INTO customers
-# SELECT * FROM {table}"""
-#                 cursor.execute(query)
-#                 conn.commit()
-
-        # for data in data_to_load:
-        #     table_name = data.split('.')[0]
-        #     full_path = os.path.join(path_prefix, data)
-        #     # Check if table already exists, create new one if not
-        #     if not table_exists(conn, table_name):
-        #         create_table_if_not_exists(conn, table_name)
-
-        #     # Copy csv to DB table (bulk import)
-        #     copy_csv_to_db(full_path, table_name, conn)
-
-        # print("All CSV files loaded successfully")
 
     except Exception as e:
         print("Error loading data:", e)
