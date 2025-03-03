@@ -7,9 +7,9 @@ services:
     container_name: postgres
     image: postgres:latest
     environment:
-      - POSTGRES_USER=${POSTGRES_USR}
-      - POSTGRES_PASSWORD=${POSTGRES_PWD}
-      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=tsuchen
+      - POSTGRES_PASSWORD=mysecretpassword
+      - POSTGRES_DB=piscineds
     ports:
       - "5432:5432"
     # volumes:
@@ -21,8 +21,8 @@ services:
     container_name: pgadmin
     image: dpage/pgadmin4
     environment:
-      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
-      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PWD}
+      - PGADMIN_DEFAULT_EMAIL=tsuchen@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=adminpwd
     ports:
       - "5050:80"
     depends_on:

@@ -11,7 +11,7 @@ DB_PORT = "5432"
 DB_NAME = "piscineds"
 
 # Path to data
-path_prefix = "/tmp/DS_Piscine/subject/customer/"
+path_prefix = "/tmp/subject/customer/"
 data_to_load = [
     "data_2022_dec.csv",
     "data_2022_nov.csv",

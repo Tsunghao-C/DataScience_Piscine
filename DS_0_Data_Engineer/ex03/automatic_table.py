@@ -11,7 +11,7 @@ DB_PORT = "5432"
 DB_NAME = "piscineds"
 
 # Path to data
-path_prefix = "/tmp/DS_Piscine/subject/customer/"
+path_prefix = "/tmp/subject/customer/"
 data_to_load = [
     "data_2022_dec.csv",
     "data_2022_nov.csv",
@@ -70,27 +70,6 @@ def copy_csv_to_db(file_path, table_name, conn):
                 file)
         conn.commit()
     print(f"{table_name} loaded successfully!")
-
-
-# Not used because using sqlalchemy.tosql if uploading row by row
-# which is too slow
-def load_csv(path: str) -> pd.DataFrame:
-    """
-    Load csv file and return pd.Dataframe
-    """
-    try:
-        if not path or not isinstance(path, str):
-            raise AssertionError("bad input")
-        if not path.lower().endswith(".csv"):
-            raise AssertionError("bad input, only accept .csv")
-        loaded_data = pd.read_csv(path, index_col=None)
-        print(f"Loading dataset of dimensions {loaded_data.shape}")
-        return loaded_data
-    except AssertionError as e:
-        print("AssertionError:", e)
-    except FileNotFoundError as e:
-        print("FileNotFound:", e)
-    return None
 
 
 if __name__ == "__main__":
