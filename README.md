@@ -17,12 +17,7 @@ CREATE TABLE IF NOT EXISTS public.data_2022_dec
     price numeric(10,2),
     user_id bigint,
     user_session uuid
-)
-
-TABLESPACE pg_default;
-
-ALTER TABLE IF EXISTS public.events
-    OWNER to tsuchen;
+);
 
 2. Copy data using psql
 ```
