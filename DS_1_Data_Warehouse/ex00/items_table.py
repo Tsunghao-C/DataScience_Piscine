@@ -3,6 +3,19 @@ import psycopg2 as psy
 import os
 
 
+# # For quicky check data status
+# df = pd.read_csv("/tmp/DS_Piscine/subject/item/item.csv")
+# print(df.shape)
+# # See all the column nams
+# print(df.columns)
+# # See last 10 rows
+# print(df.iloc[-10:, :])
+# # See unique values of a column
+# print(df['category_code'].unique())
+# print("----------------------")
+# print(df.describe())
+
+
 # Database connection details
 DB_USER = "tsuchen"
 DB_PASSWORD = "mysecretpassword"
@@ -11,15 +24,10 @@ DB_PORT = "5432"
 DB_NAME = "piscineds"
 
 # Path to data
-path_prefix = "/tmp/subject/customer/"
+path_prefix = "/tmp/subject/item/"
 data_to_load = [
-    # "data_2022_dec.csv",
-    # "data_2022_nov.csv",
-    "data_2022_oct.csv",
-    # "data_2023_jan.csv",
-    "data_2023_feb.csv"
+    "item.csv",
 ]
-
 
 def get_connection():
     """return connecting object to Postgres DB"""
@@ -48,12 +56,10 @@ def create_table_if_not_exists(conn, table_name):
     with conn.cursor() as cursor:
         create_table_query = f"""
         CREATE TABLE IF NOT EXISTS {table_name} (
-            event_time TIMESTAMP WITH TIME ZONE,
-            event_type VARCHAR(255),
             product_id INTEGER,
-            price NUMERIC(10,2),
-            user_id BIGINT,
-            user_session UUID
+            category_id BIGINT,
+            category_code TEXT,
+            brand VARCHAR(255)
         );
         """
         cursor.execute(create_table_query)
@@ -96,28 +102,3 @@ if __name__ == "__main__":
         print("Error loading data:", e)
     finally:
         conn.close()
-
-
-# Basic Workflow of "psycopg2"
-# 1. Establish a connection to PostgreSQL DB
-#       conn = psycopg2.connect()
-# 2. Create a cursor (a temp workspace for Executing queries)
-#       with conn.cursor() as cursor (or cursor = conn.cursor())
-# 3. Execute queries using the cursor object
-#       cursor.execute("SELECT * FROM my_table;")
-# 4. commit transactions to apply changes
-#       conn.commit()
-# 5. Close the cursor and connection
-#       cursor.close(); conn.close()
-
-### IMPORTANT ###
-# The SQL output is temporarily saved in cursor object of cursor.execut()
-# You must call conn.commit() to apply the changes. If not, there will be no changes
-
-# However, if the conn object is created using "with" like:
-
-# with psycopg2.connect() as conn:
-#       with conn.cursor() as cursor:
-#           cursor.execute("INSERT INTO mytable(...)")
-
-# This case, it will automatically commits when 'with' block ends
