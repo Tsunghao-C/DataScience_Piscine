@@ -42,8 +42,6 @@ def get_column_names(conn, table_name) -> list[str]:
 
 def remove_duplicate(conn, table: str):
     """remove all duplicate rows in table"""
-    columns = get_column_names(conn, table)
-    column_str = ', '.join(columns)
     query = f"""
     CREATE TABLE tmp as
     SELECT DISTINCT * FROM {table};
