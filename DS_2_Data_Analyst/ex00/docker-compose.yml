@@ -1,0 +1,31 @@
+networks:
+  database_net:
+    driver: bridge
+
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=tsuchen
+      - POSTGRES_PASSWORD=mysecretpassword
+      - POSTGRES_DB=piscineds
+    ports:
+      - "5432:5432"
+    volumes:
+      - /tmp/postgres-data:/var/lib/postgresql/data  # to persistantly bound to /tmp
+    networks:
+      - database_net
+  
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=tsuchen@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=adminpwd
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - database_net
