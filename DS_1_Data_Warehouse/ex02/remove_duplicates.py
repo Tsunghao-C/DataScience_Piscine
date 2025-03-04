@@ -40,19 +40,18 @@ def get_column_names(conn, table_name) -> list[str]:
         return [desc[0] for desc in cursor.description]
 
 
-
 def remove_duplicate(conn, table: str):
     """remove all duplicate rows in table"""
     columns = get_column_names(conn, table)
     column_str = ', '.join(columns)
     query = f"""
-DELETE FROM {table}
-WHERE ctid NOT IN (
-    SELECT MIN(ctid)
-    FROM {table}
-    GROUP BY {column_str}
-);
-"""
+    CREATE TABLE tmp as
+    SELECT DISTINCT * FROM {table};
+    TRUNCATE TABLE {table};
+    INSERT INTO {table}
+    SELECT * FROM tmp;
+    DROP TABLE tmp;
+    """
     with conn.cursor() as cursor:
         cursor.execute(query)
     conn.commit()
