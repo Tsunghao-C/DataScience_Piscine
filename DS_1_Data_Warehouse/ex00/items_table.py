@@ -71,7 +71,7 @@ def create_table_if_not_exists(conn, table_name):
 def copy_csv_to_db(file_path, table_name, conn):
     with conn.cursor() as cursor:
         with open(file_path, "r") as file:
-            next(file)
+            # next(file)
             cursor.copy_expert(
                 f"COPY {table_name} FROM STDIN WITH CSV HEADER",
                 file)
