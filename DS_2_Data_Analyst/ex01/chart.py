@@ -1,7 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import psycopg2 as psy
-import matplotlib.ticker as mticker
 
 
 # Database connection details
