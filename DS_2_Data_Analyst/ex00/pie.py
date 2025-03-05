@@ -64,3 +64,7 @@ GROUP BY event_type
 
 if __name__ == "__main__":
     main()
+
+
+# The manual way to use cursor.fetchall() is a bit more 
+# efficient but needs to manually set indexes
