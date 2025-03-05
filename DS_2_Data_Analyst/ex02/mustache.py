@@ -70,14 +70,14 @@ WHERE event_type='purchase'
 
         # retrieve data 2
         query2 = """
-SELECT total_price / baskets AS avg_basket_price
+SELECT total_price / trans AS avg_basket_price
 FROM(
 	SELECT 
 		user_id,
-		COUNT(DISTINCT user_session) AS baskets,
+		COUNT(DISTINCT event_time) AS trans,
 		SUM(price) AS total_price
 	FROM(
-		SELECT user_id, price, user_session
+		SELECT user_id, price, event_time
 		FROM customers
 		WHERE event_type='purchase'
 	)
