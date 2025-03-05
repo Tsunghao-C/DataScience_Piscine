@@ -22,10 +22,15 @@ def get_connection():
     )
  
 
-def chart1(df: pd.DataFrame, df2: pd.DataFrame):
-    """Draw a histogram showing the number of customers according to order frequency"""
+def chart(df: pd.DataFrame, df2: pd.DataFrame):
+    """
+    Draw two histogram showing 
+    the number of customers according to order frequency
+    and the money spent
+    """
     frequency = [x for x in df['num_orders'] if x <= 40]
     monetary = [x for x in df2['total_spend'] if x <= 250]
+    # Draw 1 row and 2 columns of subplots in one output
     fig, axs = plt.subplots(1, 2, figsize=(15, 6))
 
     # First hist: Frequency
@@ -75,8 +80,8 @@ GROUP BY user_id
             cursor.execute(query2)
             df2 = pd.DataFrame(cursor.fetchall(), columns=['customer', 'total_spend'])
         # print(df2.dtypes)
-        print(df2)
-        chart1(df1, df2)
+        # print(df2)
+        chart(df1, df2)
 
     except Exception as e:
         print("Error", e)
