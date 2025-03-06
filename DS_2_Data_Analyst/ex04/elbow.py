@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import psycopg2 as psy
 from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
 
 
 # Database connection details
@@ -73,11 +74,6 @@ def hist_plot(df: pd.DataFrame):
     plt.show()
 
 
-def scatter_plot(df: pd.DataFrame):
-    plt.scatter(df[df.columns[0]], df[df.columns[1]])
-    plt.show()
-
-
 def main():
     try:
         # connect to DB
@@ -88,17 +84,15 @@ def main():
         query1 = """
 SELECT
 	user_id,
-	SUM(price) as sales,
-	COUNT(*) as item_purchased,
-	COUNT(DISTINCT event_time) as trans,
-	SUM(price) / COUNT(*) as avg_item_sales,
+	COUNT (DISTINCT EXTRACT(MONTH FROM event_time)) AS purchased_months,
+	DATE '2023-03-01' - MAX(event_time)::DATE AS recency_days,
+	COUNT(DISTINCT event_time) as purchased_times,
 	SUM(price) / COUNT(DISTINCT event_time) as avg_trans_sales
 FROM customers
 WHERE event_type='purchase'
-GROUP BY user_id
-ORDER BY trans, avg_trans_sales DESC;
+GROUP BY user_id;
 """
-        columns = ['user_id', 'tol_sales', 'item_purchased', 'num_trans', 'sales_per_item', 'sales_per_trans']
+        columns = ['user_id', 'purch_months', 'recency_days', 'frequency', 'avg_sales']
         with conn.cursor() as cursor:
             cursor.execute(query1)
             df = pd.DataFrame(cursor.fetchall(), columns=columns)
@@ -111,39 +105,35 @@ ORDER BY trans, avg_trans_sales DESC;
         # boxplot(df1)
         # hist_plot(df1)
 
+        # 2. normalize the data to prevent scaling error
+        df = df[['purch_months', 'recency_days', 'frequency', 'avg_sales']]
+        print(df)
+        scaler = StandardScaler()
+        scaled_data = scaler.fit_transform(df)
+        print(scaled_data)
+        # df_scaled = pd.DataFrame(scaled_data, columns=df.columns)
+
+
+        # 3. K-means elbow method
         wcss = []
-        centroids = []
-        data = df[['tol_sales', 'item_purchased']]
-        # scatter_plot(data)
+        # centroids = []
         # print(data)
         for k in range(1, 11):
-            kmeans = KMeans(n_clusters=k, random_state=42, n_init=10).fit(data.to_numpy())
+            kmeans = KMeans(n_clusters=k, random_state=42, n_init=10).fit(scaled_data)
             wcss.append(kmeans.inertia_)
-            centroids.append(kmeans.cluster_centers_)
+            # centroids.append(kmeans.cluster_centers_)
         
         print(wcss)
-        print(centroids)
+        # print(centroids)
 
-        fig, axs = plt.subplots(1, 2, figsize=(15, 6))
+        fig, axs = plt.subplots(1, 1, figsize=(12, 6))
 
         # Elbow plot        
-        axs[0].plot(range(1, 11), wcss)
-        axs[0].grid(True, linestyle='-', alpha=0.5)
-        axs[0].set_xlabel("Number of clusters")
-        axs[0].set_ylabel("WCSS")
-        axs[0].set_title("The Elbow Method")
-
-        # Scatter plot
-        final_centroids = np.array(centroids[4])
-        axs[1].scatter(data[data.columns[0]], data[data.columns[1]], label="Data Points")
-        axs[1].scatter(final_centroids[:, 0], final_centroids[:, 1],
-                       color='red', marker='*', s=100, label='Centroids')
-        axs[1].set_xlabel(data.columns[0])
-        axs[1].set_ylabel(data.columns[1])
-        axs[1].set_title("Cluster Scatter Plot with Centroids")
-        axs[1].legend()
-
-        plt.tight_layout()
+        axs.plot(range(1, 11), wcss)
+        axs.grid(True, linestyle='-', alpha=0.5)
+        axs.set_xlabel("Number of clusters")
+        axs.set_ylabel("WCSS")
+        axs.set_title("The Elbow Method")
         plt.show()
 
     except Exception as e:
