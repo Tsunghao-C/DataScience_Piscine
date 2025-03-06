@@ -45,7 +45,7 @@ def chart2(df: pd.DataFrame):
     fig = plt.figure(figsize=(10, 7))
     plt.boxplot(df['price'], orientation='horizontal')
     plt.xlabel('price')
-    plt.xlim(26, 46)
+    plt.xlim(24, 45)
     plt.show()
 
 
@@ -64,32 +64,26 @@ WHERE event_type='purchase'
             cursor.execute(query1)
             df1 = pd.DataFrame(cursor.fetchall(), columns=['price'])
         df1['price'] = pd.to_numeric(df1['price'])
+        print("Describe of all purchase price")
         ft_describe(df1)
         # print(df1.describe())
         chart1(df1)
 
         # retrieve data 2
         query2 = """
-SELECT total_price / trans AS avg_basket_price
-FROM(
-	SELECT 
-		user_id,
-		COUNT(DISTINCT event_time) AS trans,
-		SUM(price) AS total_price
-	FROM(
-		SELECT user_id, price, event_time
-		FROM customers
-		WHERE event_type='purchase'
-	)
-	GROUP BY user_id
-)
+SELECT user_id, AVG(price) AS avg_basket_per_user
+FROM customers
+WHERE event_type='purchase'
+GROUP BY user_id
+HAVING AVG(price) BETWEEN 26 AND 43
 """
         with conn.cursor() as cursor:
             cursor.execute(query2)
-            df2 = pd.DataFrame(cursor.fetchall(), columns=['price'])
+            df2 = pd.DataFrame(cursor.fetchall(), columns=['user_id', 'price'])
         df2['price'] = pd.to_numeric(df2['price'])
-        ft_describe(df2)
-        chart1(df2)
+        # print("\nDescribe of average basket price per user")
+        # ft_describe(df2)
+        chart2(df2)
 
     except Exception as e:
         print("Error", e)
