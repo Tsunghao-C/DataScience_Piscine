@@ -81,7 +81,7 @@ ORDER BY date;
             cursor.execute(query1)
             df1 = pd.DataFrame(cursor.fetchall(), columns=['date', 'num_customers'])
         # Need to change the data type from obj to datetime!!!
-        df1['date'] = pd.to_datetime(df1['date'])
+        df1['date'] = pd.to_datetime(df1['date'], errors='coerce')
         # print(df1.dtypes)
         chart1(df1)
 
@@ -101,7 +101,7 @@ ORDER BY month;
         with conn.cursor() as cursor:
             cursor.execute(query2)
             df2 = pd.DataFrame(cursor.fetchall(), columns=['month', 'sales'])
-        df2['month'] = pd.to_datetime(df2['month'])
+        df2['month'] = pd.to_datetime(df2['month'], errors='coerce')
         # print(df2.dtypes)
         # print(df2.describe)
         chart2(df2)

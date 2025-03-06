@@ -80,7 +80,7 @@ HAVING AVG(price) BETWEEN 26 AND 43
         with conn.cursor() as cursor:
             cursor.execute(query2)
             df2 = pd.DataFrame(cursor.fetchall(), columns=['user_id', 'price'])
-        df2['price'] = pd.to_numeric(df2['price'])
+        df2['price'] = pd.to_numeric(df2['price'], errors='coerce')
         # print("\nDescribe of average basket price per user")
         # ft_describe(df2)
         chart2(df2)
