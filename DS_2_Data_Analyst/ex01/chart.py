@@ -38,7 +38,7 @@ def chart1(df: pd.DataFrame):
 def chart2(df: pd.DataFrame):
     """Draw a bar chart showing the monthly sales"""
     months = [x.strftime('%b') for x in df['month']]
-    print(months)
+    # print(months)
     plt.bar(months, df['sales'])
     plt.ylabel("total sales in million of ₳")
     plt.xlabel("month")
@@ -82,7 +82,7 @@ ORDER BY date;
             df1 = pd.DataFrame(cursor.fetchall(), columns=['date', 'num_customers'])
         # Need to change the data type from obj to datetime!!!
         df1['date'] = pd.to_datetime(df1['date'])
-        print(df1.dtypes)
+        # print(df1.dtypes)
         chart1(df1)
 
         # retrieve 2nd data
@@ -102,8 +102,8 @@ ORDER BY month;
             cursor.execute(query2)
             df2 = pd.DataFrame(cursor.fetchall(), columns=['month', 'sales'])
         df2['month'] = pd.to_datetime(df2['month'])
-        print(df2.dtypes)
-        print(df2.describe)
+        # print(df2.dtypes)
+        # print(df2.describe)
         chart2(df2)
 
         # retrieve 3rd data
@@ -124,8 +124,8 @@ ORDER BY date;
             cursor.execute(query3)
             df3 = pd.DataFrame(cursor.fetchall(), columns=['date', 'avg_spend'])
         df3['date'] = pd.to_datetime(df3['date'])
-        print(df3.dtypes)
-        print(df3.describe)
+        # print(df3.dtypes)
+        # print(df3.describe)
         chart3(df3)
 
     except Exception as e:
