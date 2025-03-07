@@ -1,9 +1,10 @@
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 import psycopg2 as psy
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 # Database connection details
@@ -24,39 +25,44 @@ def get_connection():
         port=DB_PORT
     )
 
+def assign_customer_level(cluster):
+    if cluster == 3:
+        return "inactive"
+    elif cluster == 0:
+        return "loyal gold"
+    elif cluster == 1:
+        return "loyal platinum"
+    elif cluster == 2:
+        return "new customer"
+    elif cluster == 4:
+        return "loyal silver"
 
-def barh_chart(df: pd.DataFrame):
-    """Draw customer level barchart"""
-    fig, ax = plt.subplots(figsize=(12, 5))
-    hbars = ax.barh(
-        y=df['custom_level'],
-        width=df['customer_count'],
-        align='center',
-        color=['red', 'blue', 'green', 'silver', 'gold', 'pink'])
-    ax.set_xlabel("number of customers")
-    # Label with data
-    ax.bar_label(hbars)
+
+def barplot(df: pd.DataFrame):
+    plt.figure(figsize=(10, 6))
+    ax = sns.barplot(df, x="customer_level", y="purch_months", palette='viridis')
+    ax.bar_label(ax.containers[0])
+    plt.ylabel('num of customers')
+    plt.title("Customer numbers by Category")
     plt.show()
 
-def scatter_chart(df: pd.DataFrame):
-    """Draw scatter plot showing customer categories respect to recency and frequency"""
-    fig, ax = plt.subplots(figsize=(10, 5))
-    ax.scatter(
-        df['avg_recency'],
-        df['avg_frequency'],
-        s=df['size'] / 150,
-        c='blue',
-        alpha=0.6,
-        edgecolors='black')
-    for i, txt in enumerate(df['custom_level']):
-        ax.annotate(f"{txt}: {df['size'][i]}", (df['avg_recency'][i] - 0.2, df['avg_frequency'][i] + 0.2),
-                    fontsize=10, xytext=(5,5), textcoords='offset points')
-    plt.xlabel("Average Recency (Month)")
-    plt.xlim(-0.5, 4.0)
-    plt.ylim(0, 12)
-    plt.ylabel("Average Frequency")
-    plt.grid(True)
+
+def scatterplot(df: pd.DataFrame):
+    centroids = df.groupby("customer_level").mean().reset_index()
+    # print(centroids)
+    centroid_coor = centroids[['PC1', 'PC2']]
+
+    plt.figure(figsize=(10, 6))
+    sns.scatterplot(x=df['PC1'], y=df['PC2'], hue=df['customer_level'], palette='viridis')
+    plt.scatter(centroid_coor['PC1'], centroid_coor['PC2'],
+                color='red', marker='*', s=150, label='Centroids')
+    plt.title("Customer Cluster (PCA reduced)")
+    plt.xlabel("Principal Component 1")
+    plt.ylabel("Principal Component 2")
+    plt.title("Customer Clustering by PCA axis")
+    plt.legend()
     plt.show()
+
 
 def main():
     try:
@@ -64,98 +70,64 @@ def main():
         conn = get_connection()
         print("Connected to Postgres DB")
 
-        # 1st use recency and frequncy to determine number of clusters
-
-        # retrieve data
-        query1 = """
+        # 1. retrieve data using RFM model: Recency, Frequency, Monetary
+        query = """
 SELECT
-	CASE
-		WHEN NOT (last_purch_month = 1 OR last_purch_month = 2 OR last_purch_month = 12) THEN 'inactive'
-		WHEN purchased_months = 5 THEN 'loyal platinum'
-		WHEN purchased_months = 4 THEN 'loyal gold'
-		WHEN purchased_months = 3 THEN 'loyal silver'
-		WHEN purchased_months = 2 THEN 'active'
-		WHEN purchased_months = 1 AND purchase_times = 1 THEN 'new customer'
-		WHEN purchased_months = 1 AND purchase_times > 1 THEN 'active'
-	END AS customer_category,
-	COUNT(DISTINCT user_id) AS customer_count
-FROM (
-	SELECT
-		user_id,
-		COUNT (DISTINCT EXTRACT(MONTH FROM event_time)) AS purchased_months,
-		EXTRACT(MONTH FROM MAX(event_time)) AS last_purch_month,
-		COUNT (DISTINCT event_time) AS purchase_times
-	FROM customers
-	WHERE event_type='purchase'
-	GROUP BY user_id
-) AS purchase_counts
-GROUP BY customer_category
-ORDER BY customer_count DESC;
+	user_id,
+	COUNT (DISTINCT EXTRACT(MONTH FROM event_time)) AS purchased_months,
+	DATE '2023-03-01' - MAX(event_time)::DATE AS recency_days,
+	COUNT(DISTINCT event_time) as purchased_times,
+	SUM(price) / COUNT(DISTINCT event_time) as avg_trans_sales
+FROM customers
+WHERE event_type='purchase'
+GROUP BY user_id;
 """
-        columns = ['custom_level', 'customer_count']
+        columns = ['user_id', 'purch_months', 'recency_days', 'frequency', 'avg_sales']
         with conn.cursor() as cursor:
-            cursor.execute(query1)
+            cursor.execute(query)
             df = pd.DataFrame(cursor.fetchall(), columns=columns)
-        print(df)
-        barh_chart(df)
-        scalar = StandardScaler()
-        scaled_data = scalar.fit_transform(df['customer_count'].to_numpy().reshape(-1, 1))
-        # print(scaled_data)
-        num_clusters = 6
-        kmeans = KMeans(n_clusters=num_clusters, random_state=42, n_init=10)
-        cluster_labels = kmeans.fit_predict(scaled_data)
+        
+        # change object types to numeric
+        for column in df.columns:
+            if pd.api.types.is_object_dtype(df[column]):
+                df[column] = pd.to_numeric(df[column], errors='coerce')
 
-        cluster_average = []
+        # 2. normalize the data to prevent scaling error
+        df = df[['purch_months', 'recency_days', 'frequency', 'avg_sales']]
+        scaler = StandardScaler()
+        scaled_data = scaler.fit_transform(df)
+        df_scaled = pd.DataFrame(scaled_data, columns=df.columns)
 
+        # 3. K-means elbow method
+        kmeans = KMeans(n_clusters=5, random_state=42, n_init=10)
+        df_scaled['cluster'] = kmeans.fit_predict(df_scaled)
+        print("\n------ Scaled data ------\n")
+        print(df_scaled)
+        
+        # # use pair plot directly
+        # plt.figure(figsize=(10, 6))
+        # sns.pairplot(df_scaled, hue='cluster', palette='viridis')
+        # plt.show()
 
+        # Apply PCA to reduce to 2 dimensions
+        pca = PCA(n_components=2)
+        df_scaled[['PC1', 'PC2']] = pca.fit_transform(df_scaled.iloc[:, :-1])
+        print("\n------ Adding PCA columns ------\n")
+        df_scaled['customer_level'] = df_scaled['cluster'].apply(assign_customer_level)
+        print(df_scaled)
 
-        query2 = """
-SELECT
-	customer_category,
-	AVG(recency) AS avg_recency,
-	AVG(frequency) AS avg_frequency,
-    COUNT(*) AS counts
-FROM (
-	SELECT
-		CASE
-			WHEN NOT (last_purch_month = 1 OR last_purch_month = 2 OR last_purch_month = 12) THEN 'inactive'
-			WHEN purchased_months = 5 THEN 'loyal platinum'
-			WHEN purchased_months = 4 THEN 'loyal gold'
-			WHEN purchased_months = 3 THEN 'loyal silver'
-			WHEN purchased_months = 2 THEN 'active'
-			WHEN purchased_months = 1 AND purchase_times = 1 THEN 'new customer'
-			WHEN purchased_months = 1 AND purchase_times > 1 THEN 'active'
-		END AS customer_category,
-		CASE
-			WHEN last_purch_month = 2 THEN 0
-			WHEN last_purch_month = 1 THEN 1
-			WHEN last_purch_month = 12 THEN 2
-			WHEN last_purch_month = 11 THEN 3
-			WHEN last_purch_month = 10 THEN 4
-		END AS recency,
-		purchase_times AS frequency,
-		purchased_months
-	FROM (
-		SELECT
-			user_id,
-			COUNT (DISTINCT EXTRACT(MONTH FROM event_time)) AS purchased_months,
-			EXTRACT(MONTH FROM MAX(event_time)) AS last_purch_month,
-			COUNT (DISTINCT event_time) AS purchase_times
-		FROM customers
-		WHERE event_type='purchase'
-		GROUP BY user_id
-	) AS purchase_counts
-)
-GROUP BY customer_category
-"""
-        # columns2 = ['custom_level', 'avg_recency', 'avg_frequency', 'size']
-        # with conn.cursor() as cursor:
-        #     cursor.execute(query2)
-        #     df2 = pd.DataFrame(cursor.fetchall(), columns=columns2)
-        # df2['avg_recency'] = pd.to_numeric(df2['avg_recency'], errors='coerce')
-        # df2['avg_frequency'] = pd.to_numeric(df2['avg_frequency'], errors='coerce')
-        # print(df2)
-        # scatter_chart(df2)
+        # add cluster back to unscaled data to see how it is clustered
+        df['customer_level'] = df_scaled['customer_level']
+        print("\n------ Adding cluster category names and show the mean value of each feature ------\n")
+        print(df.groupby("customer_level").mean())
+
+        # Draw bar plot using amount of customer per each category
+        df_customer_level = df.groupby("customer_level").count().reset_index()
+        barplot(df_customer_level)
+
+        # Draw Scatter plot
+        scatterplot(df_scaled)
+
 
     except Exception as e:
         print("Error", e)
