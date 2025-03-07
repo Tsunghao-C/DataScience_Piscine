@@ -36,14 +36,14 @@ def ft_describe(df: pd.DataFrame):
 def chart1(df: pd.DataFrame):
     """Draw a plot chart showing the num of customers"""
     fig = plt.figure(figsize=(10, 7))
-    plt.boxplot(df['price'], orientation='horizontal')
+    plt.boxplot(df['price'], vert=False)
     plt.xlabel('price')
     plt.show()
 
 def chart2(df: pd.DataFrame):
     """Draw a plot chart showing the num of customers"""
     fig = plt.figure(figsize=(10, 7))
-    plt.boxplot(df['price'], orientation='horizontal')
+    plt.boxplot(df['price'], vert=False)
     plt.xlabel('price')
     plt.xlim(24, 45)
     plt.show()
