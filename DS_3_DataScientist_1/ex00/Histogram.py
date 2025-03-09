@@ -66,12 +66,12 @@ def histplots_hue(df: pd.DataFrame):
 def main():
     try:
         # 1st plot
-        df = pd.read_csv("Test_knight.csv")
+        df = pd.read_csv("../Test_knight.csv")
         # display(df)
         histplots(df)
 
         # 2nd plot
-        df2 = pd.read_csv("Train_knight.csv")
+        df2 = pd.read_csv("../Train_knight.csv")
         # display(df2)
         histplots_hue(df2)
     except Exception as e:
