@@ -1,6 +1,5 @@
-import numpy as np
 import pandas as pd
-import scipy.stats
+import scipy.stats as stat
 
 
 def corr_generate(df: pd.DataFrame, target: str) -> dict:
@@ -9,7 +8,7 @@ def corr_generate(df: pd.DataFrame, target: str) -> dict:
     """
     results = {}
     for feature in df.columns:
-        corr, p_value = scipy.stats.pearsonr(df[feature], df[target])
+        corr, p_value = stat.pearsonr(df[feature], df[target])
         results[feature] = (abs(corr), p_value)
     
     # sort by absolute correlation value (strongest to weakest)
@@ -19,7 +18,7 @@ def corr_generate(df: pd.DataFrame, target: str) -> dict:
 
 def main():
     try:
-        df = pd.read_csv("Train_knight.csv")
+        df = pd.read_csv("../Train_knight.csv")
 
         # 1: replace string with 0 and 1, and then replace the column
         # df['target'] = df['knight'].apply(lambda x: 1 if x == 'Jedi' else 0)
