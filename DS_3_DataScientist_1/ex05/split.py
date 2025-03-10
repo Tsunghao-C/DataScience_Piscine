@@ -37,3 +37,12 @@ if __name__ == "__main__":
 
 # Note: train test split should be done BEFORE Scaling
 # if we do scaling first, there will be information leek from test data to train data
+
+# Size of train and test data portion
+# 1. by default is 80% training and 20% validating
+# 2. sometimes 90/10 when dataset is too small, need more data for training
+# 3. sometimes 70/30 when more evaluation data is needed
+# 4. There is "KFold" method for cross-validating split for example:
+#   if k = 5 and testing is 20%, it will take turns to pick 20% of the data
+#   to be testing set for 5 times, so every data will be treated for both
+#   training and validating data. This help reduce the impact of data variability.
