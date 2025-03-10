@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from Correlation import corr_generate
+# from Correlation import corr_generate
 
 
 def boxplots(df: pd.DataFrame):
