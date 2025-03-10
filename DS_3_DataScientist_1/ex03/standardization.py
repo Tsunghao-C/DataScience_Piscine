@@ -57,3 +57,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+### Notes about Standardization
+# Standardization is mostly used in normal distributed data
+# it is less sensitive to outliers and keep the original data distribution
