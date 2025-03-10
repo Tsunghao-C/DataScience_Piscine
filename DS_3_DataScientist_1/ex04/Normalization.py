@@ -62,3 +62,10 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+### Notes:
+# Normalization changes the shape of original distribution of data
+# and thus is very sensitive to outliers
+# Best used for data that are not normally distributed or
+# has known fixed boundaries
