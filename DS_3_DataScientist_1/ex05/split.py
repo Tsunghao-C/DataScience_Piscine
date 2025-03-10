@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import os
+import sys
 from sklearn.model_selection import train_test_split
 
 
@@ -24,11 +26,20 @@ def split_trained_data(df: pd.DataFrame, t_size: float):
 
 def main():
     try:
-        df = pd.read_csv("../Train_knight.csv")
+        if len(sys.argv) != 2:
+            raise AssertionError("incorrect input arguments")
+        path = sys.argv[1]
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"File {path} not found")
+        df = pd.read_csv(path)
         split_trained_data(df, 0.8)
 
+    except AssertionError as e:
+        print("AssertionError:", e)
+    except FileNotFoundError as e:
+        print("FileNotFound:", e)
     except Exception as e:
-        print("Error", e)
+        print("Error: ", e)
 
 
 if __name__ == "__main__":
