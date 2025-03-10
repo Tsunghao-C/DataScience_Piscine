@@ -1,7 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import sklearn.preprocessing as prep
 
 
 def get_standardization(df: pd.DataFrame) -> pd.DataFrame:
