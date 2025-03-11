@@ -1,0 +1,24 @@
+# array and data management
+numpy==1.24.3
+pandas==1.5.3
+
+# Data vizualization
+matplotlib==3.7.1
+seaborn==0.12.2
+graphviz
+
+# Image processing
+opencv-python==4.7.0.72
+pillow==9.4.0
+
+# ML
+scikit-learn==1.2.2
+scipy==1.10.1
+# tensorflow==2.12.0
+# torch==2.0.1
+
+# Connection to DB
+psycopg2-binary
+
+# Other helper libraries
+tqdm==4.65.0
