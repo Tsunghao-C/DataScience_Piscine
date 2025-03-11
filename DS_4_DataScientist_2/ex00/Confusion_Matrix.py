@@ -46,13 +46,52 @@ def get_specificity(cm: dict, flag: bool=True) -> float:
     return cm['TP'] / (cm['TP'] + cm['FN'])
 
 
+def display_cm(cm: dict):
+    # positive scores
+    Jedi_score = np.array([
+        get_precision(cm),
+        get_recall(cm),
+        get_f1score(cm),
+        cm['TP'] + cm['FN']])
+    # negative scores
+    Sith_score = np.array([
+        get_precision(cm, False),
+        get_recall(cm, False),
+        get_f1score(cm, False),
+        cm['FP'] + cm['TN']])
+    # accruacy and total
+    total = np.array([x for x in cm.values()]).sum()
+    Accuracy = np.array([get_accuracy(cm), total])
+
+    # display scores in table format
+    columns = ['precision', 'recall', 'f1-score', 'total']
+    df_cm2 = pd.DataFrame([Jedi_score, Sith_score], columns=columns, index=['Jedi', 'Sith'])
+    df_cm2 = df_cm2.astype({'total': int})
+    print(df_cm2)
+    print(f"\naccuracy                     {Accuracy[0]}    {Accuracy[1]:.0f}")
+
+    # diplay confusion matrix
+    cm_matrix = np.array([
+        [cm['TP'], cm['FN']],
+        [cm['FP'], cm['TN']]
+    ])
+    print(f"\n{cm_matrix}")
+
+    # plt.figure(figsize=(12, 8))
+    sns.heatmap(cm_matrix, annot=True)
+    plt.show()
+    plt.close()
+
+
 def main():
     try:
+        # input check
         if len(sys.argv) != 3:
             raise AssertionError("incorrect input arguments")
         path_pre, path_truth = (sys.argv[1], sys.argv[2])
         if not (os.path.exists(path_pre) and os.path.exists(path_truth)):
             raise FileNotFoundError("file not found")
+
         # Load data into lists
         with open(path_pre, 'r') as file:
             pred = [line.strip() for line in file]
@@ -75,35 +114,13 @@ def main():
 
         # Create a table of confusion matrix
         df_cm = df.groupby('result').size().reset_index(name='count')
-        # print(df_cm)
+        print(df_cm)
         # print(type(df_cm.set_index('result')))
         # print(type(df_cm.set_index('result')['count']))
         cm = df_cm.set_index('result')['count'].to_dict()
-        print("confusion matrix:\n")
-        cm_array = np.array([
-            [cm['TP'], cm['FN']],
-            [cm['FP'], cm['TN']]
-        ])
-
-        # calculate confusion matrix metrics
-
-        Jedi_score = np.array([
-            get_precision(cm),
-            get_recall(cm),
-            get_f1score(cm),
-            cm['TP'] + cm['FN']])
-        Sith_score = np.array([
-            get_precision(cm, False),
-            get_recall(cm, False),
-            get_f1score(cm, False),
-            cm['FP'] + cm['TN']])
-        Accuracy = np.array([get_accuracy(cm), df_cm['count'].sum()])
-        print(Jedi_score)
-        print(Sith_score)
-        print(Accuracy)
-
-        print("\n", cm_array)
-
+        # print(cm)
+        # print("confusion matrix:\n")
+        display_cm(cm)
 
     except Exception as e:
         print("Error:", e)
