@@ -44,7 +44,6 @@ def main():
         dot_data = export_graphviz(clf, out_file=None,
                         filled=True, rounded=True,
                         special_characters=True, feature_names=df_test.columns)
-        # graph = pydotplus.graph_from_dot_data(dot_data.getvalue())
         graph = graphviz.Source(dot_data)
         graph.render("decision_tree")
         graph.view()
