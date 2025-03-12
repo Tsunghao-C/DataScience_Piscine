@@ -109,15 +109,13 @@ def main():
             (df['Truth'] == 'Jedi') & (df['Prediction'] == 'Sith')
         ]
         labels = ['TP', 'TN', 'FP', 'FN']
-        df['result'] = np.select(condlist=conditions, choicelist=labels)
+        df['result'] = np.select(condlist=conditions, choicelist=labels, default='other')
         # print(df)
 
-        # Create a table of confusion matrix
-        df_cm = df.groupby('result').size().reset_index(name='count')
-        print(df_cm)
-        # print(type(df_cm.set_index('result')))
-        # print(type(df_cm.set_index('result')['count']))
-        cm = df_cm.set_index('result')['count'].to_dict()
+        # Add default value 0 to all keys to make sure all 4 keys are created
+        cm = {label: 0 for label in labels}  # Ensure all labels are included
+        df_cm = df.groupby('result').size().to_dict()  # Convert grouped counts to dict
+        cm.update(df_cm)  # Update only existing values while keeping others at 0
         # print(cm)
         # print("confusion matrix:\n")
         display_cm(cm)
