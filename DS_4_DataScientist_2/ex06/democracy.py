@@ -3,13 +3,13 @@ import os
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import VotingClassifier
 from sklearn import metrics
-import matplotlib.pyplot as plt
 
 
 def main():
@@ -42,24 +42,30 @@ def main():
         X_train_pca = pca.fit_transform(X_train_scaled)
         X_test_pca = pca.transform(X_test_scaled)
 
-        # 5. Train Logistic regression model
+        # 5. Defines models for assembly
+        knn = KNeighborsClassifier(n_neighbors=19)
+        dt = DecisionTreeClassifier(random_state=42, criterion='entropy')
         logreg = LogisticRegression(random_state=42)
+        voting_clf = VotingClassifier(
+            estimators=[('knn', knn), ('dt', dt), ('lr', logreg)],
+            voting='hard'
+        )
 
         # train the model using training dataset
-        logreg.fit(X_train_pca, y_train)
-        y_pred = logreg.predict(X_test_pca)
+        voting_clf.fit(X_train_pca, y_train)
+        y_pred = voting_clf.predict(X_test_pca)
         # Evaluating model y_pred and y_test
-        print("Train f1-score:", metrics.f1_score(y_train, logreg.predict(X_train_pca)))
-        print("Test f1-score:", metrics.f1_score(y_test, y_pred))
+        print("f1-score:", metrics.f1_score(y_test, y_pred))
+        print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
         print("Explained Variance Ratio:", pca.explained_variance_ratio_.sum())
         # Visualize KNN by numbers of neighbors (k)
 
         # Predict on Test_knight.csv
-        test_pred = logreg.predict(pca.transform(scaler.transform(df_test)))
+        test_pred = voting_clf.predict(pca.transform(scaler.transform(df_test)))
         print(test_pred)
         decoded_test_pred = np.where(test_pred == 1, 'Sith', 'Jedi')
 
-        with open("Logreg.txt", "w") as file:
+        with open("Voting.txt", "w") as file:
             file.write("\n".join(decoded_test_pred))
 
     except AssertionError as e:
