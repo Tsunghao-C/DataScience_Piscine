@@ -3,7 +3,9 @@ import os
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.decomposition import PCA
 from sklearn import metrics
 from sklearn.tree import export_graphviz
 import graphviz
@@ -29,12 +31,22 @@ def main():
         # Splitting data
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y, shuffle=True)
 
+        # Scaling (not needed for DecisionTree, but it won't hurt)
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        # Apply PCA to remove redundant features
+        pca = PCA(n_components=7)
+        X_train_pca = pca.fit_transform(X_train_scaled)
+        X_test_pca = pca.transform(X_test_scaled)
+
         # Create Decision tree model
         clf = DecisionTreeClassifier(criterion='entropy')
         # Train Descision Tree model with training set
-        clf = clf.fit(X_train, y_train)
+        clf = clf.fit(X_train_pca, y_train)
         # Prediect result on validating set
-        y_pred = clf.predict(X_test)
+        y_pred = clf.predict(X_test_pca)
         # Evaluating model y_pred and y_test
         print("f1-score:", metrics.f1_score(y_test, y_pred))
         # print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
@@ -43,13 +55,13 @@ def main():
         # Visualize Decision Tree
         dot_data = export_graphviz(clf, out_file=None,
                         filled=True, rounded=True,
-                        special_characters=True, feature_names=df_test.columns)
+                        special_characters=True, feature_names=[f"pca{x}" for x in range(7)])
         graph = graphviz.Source(dot_data)
         graph.render("decision_tree")
         graph.view()
 
         # Predict on Test_knight.csv
-        test_pred = clf.predict(df_test)
+        test_pred = clf.predict(pca.transform(scaler.transform(df_test)))
         print(test_pred)
         decoded_test_pred = np.where(test_pred == 1, 'Sith', 'Jedi')
 

@@ -3,9 +3,11 @@ import os
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn import metrics
 import matplotlib.pyplot as plt
 
@@ -18,62 +20,46 @@ def main():
         path_train, path_test = (sys.argv[1], sys.argv[2])
         if not (os.path.exists(path_train) and os.path.exists(path_test)):
             raise FileNotFoundError("File not found")
+        # 1. Load data
         df_train = pd.read_csv(path_train)
-        # codes method will codes by ascii acscending order
         df_train['knight'] = df_train['knight'].astype('category').cat.codes
         df_test = pd.read_csv(path_test)
 
-        # Feature selection
+        # 2 Feature selection
         X = df_train.drop(columns=['knight'])
         y = df_train['knight']
 
         # Splitting data
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y, shuffle=True)
 
-        # Scaling data
+        # 3. Scaled data with standard scaler (fit_transform on train, transform on test)
         scaler = StandardScaler()
         X_train_scaled = scaler.fit_transform(X_train)
         X_test_scaled = scaler.transform(X_test)
 
-        # Applying PCA
+        # 4. Apply PCA (fit_transform on train, transform on test)
         pca = PCA(n_components=7)
         X_train_pca = pca.fit_transform(X_train_scaled)
         X_test_pca = pca.transform(X_test_scaled)
 
-        neighbors = range(1, 50)
-        train_accuracy = np.empty(len(neighbors))
-        test_accuracy = np.empty(len(neighbors))
-        f1_score = np.empty(len(neighbors))
-        for i, k in enumerate(neighbors):
-            # Create Decision tree model
-            knn = KNeighborsClassifier(n_neighbors=k)
-            # Train Descision Tree model with training set
-            knn = knn.fit(X_train_pca, y_train)
-            # Prediect result on validating set
-            train_accuracy[i] = knn.score(X_train_pca, y_train)
-            test_accuracy[i] = knn.score(X_test_pca, y_test)
-            f1_score[i] = metrics.f1_score(y_test, knn.predict(X_test_pca))
+        # 5. Train Logistic regression model
+        logreg = LogisticRegression(random_state=42)
 
+        # train the model using training dataset
+        logreg.fit(X_train_pca, y_train)
+        y_pred = logreg.predict(X_test_pca)
+        # Evaluating model y_pred and y_test
+        print("Train f1-score:", metrics.f1_score(y_train, logreg.predict(X_train_pca)))
+        print("Test f1-score:", metrics.f1_score(y_test, y_pred))
+        print("Explained Variance Ratio:", pca.explained_variance_ratio_.sum())
         # Visualize KNN by numbers of neighbors (k)
-        plt.plot(neighbors, test_accuracy, label='Validating dataset')
-        plt.plot(neighbors, train_accuracy, label='Training dataset')
-        plt.plot(neighbors, f1_score, label='Validating f1-score')
 
-        plt.legend()
-        plt.xlabel('k_values')
-        plt.ylabel('accuracy')
-        plt.show()
         # Predict on Test_knight.csv
-        optimal_k = np.argmax(f1_score) + 1
-        print(f"Optimal K value from KNN: {optimal_k}")
-        knn = KNeighborsClassifier(n_neighbors=optimal_k)
-        knn = knn.fit(X_train_pca, y_train)
-        print(f"f1_score of KNN with {optimal_k} neighbors: {metrics.f1_score(y_test, knn.predict(X_test_pca))}")
-        test_pred = knn.predict(pca.transform(scaler.transform(df_test)))
+        test_pred = logreg.predict(pca.transform(scaler.transform(df_test)))
         print(test_pred)
         decoded_test_pred = np.where(test_pred == 1, 'Sith', 'Jedi')
 
-        with open("KNN.txt", "w") as file:
+        with open("Logreg.txt", "w") as file:
             file.write("\n".join(decoded_test_pred))
 
     except AssertionError as e:
@@ -86,3 +72,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# if you directly use the raw data of all 30 features, LogReg will have problem
+# converge within 100 reps. Even after Stadardization, the f1-score is unbelieveabliy high
+# at 0.9919, which is very likely to have overfitting.
+# solution -> either use PCA or VIF for Feature selection
